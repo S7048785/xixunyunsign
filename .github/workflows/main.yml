@@ -3,7 +3,7 @@ name: Test schedule
 on:
   schedule:
     - cron: '0 0 * * *'  # UTC时间0点（北京时间早上8点）
-    - cron: '0 10 * * *'  # UTC时间10点（北京时间晚上6点）
+    - cron: '40 11 * * *'  # UTC时间10点（北京时间晚上19:40）
   workflow_dispatch: # 手动触发
 
 jobs:
