@@ -1,0 +1,43 @@
+name: Test schedule
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # UTC时间0点（北京时间早上8点）
+    - cron: '0 10 * * *'  # UTC时间10点（北京时间晚上6点）
+  workflow_dispatch: # 手动触发
+
+jobs:
+  scheduled-task:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.22'
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential gcc-aarch64-linux-gnu gcc-arm-linux-gnueabihf gcc-arm-linux-gnueabi libssl-dev libcurl4-openssl-dev pkg-config
+
+      - name: Run Script
+        env:
+          CGO_ENABLED: 1
+          CC: x86_64-linux-gnu-gcc
+          CXX: x86_64-linux-gnu-g++
+          PKG_CONFIG_SYSROOT_DIR: /sysroot/linux/amd64
+          PKG_CONFIG_PATH: /sysroot/linux/amd64/usr/lib/pkgconfig:/sysroot/linux/amd64/usr/local/lib/pkgconfig
+          GITHUB_TOKEN: ${{secrets.GITHUB_TOKEN}}
+        run: |
+          export CGO_ENABLED=${{ env.CGO_ENABLED }}
+          export CC=${{ env.CC }}
+          export CXX=${{ env.CXX }}
+          export PKG_CONFIG_SYSROOT_DIR=${{ env.PKG_CONFIG_SYSROOT_DIR }}
+          export PKG_CONFIG_PATH=${{ env.PKG_CONFIG_PATH }}
+          
+          go run main.go login -a ${{secrets.USERNAME}} -p ${{secrets.PASSWORD}}
+          go run main.go query -a ${{secrets.USERNAME}}
+          go run main.go sign -a ${{secrets.USERNAME}} --address=${{secrets.ADDRESS}} --address_name=${{secrets.ADDRESS_NAME}} -k ${{secrets.API_KEY_FANGTANG}}
